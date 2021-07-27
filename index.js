@@ -78,6 +78,23 @@ const run_Options = () => {
     });
 };
 
+const employee = (new_Roles) => {
+  const query =
+    'SELECT * FROM employee' ;
+    connection.query(query, (err, res) => {
+        if (err) throw err;
+        console.table(res);
+        let emp= res;
+      let new_emp = []
+        emp.forEach(({id, first_name, last_name}) => {
+          new_emp.push(id+'.'+first_name + " " + last_name)
+        })
+        console.table("role", new_Roles);
+        console.table("emp", new_emp);
+        add_Employee(new_Roles, new_emp)
+    });
+}
+
 var manager =[];
 const select_Manager = () => {
   connection.query("SELECT first_name, last_name FROM employee WHERE manager_id IS NULL", function(err, res) {
@@ -149,7 +166,7 @@ const view_all_Roles = (call) => {
           roles.forEach(({id, title}) => {
             new_Roles.push(id+'.'+title)
           })
-          add_Employee(new_Roles)
+          employee(new_Roles)
           break;
         
         case 'viewall':
@@ -159,7 +176,8 @@ const view_all_Roles = (call) => {
       });
 };
 
-const add_Employee = (role) => {
+const add_Employee = (role, manager) => {
+  console.log
   inquirer
     .prompt([
       {
@@ -182,29 +200,22 @@ const add_Employee = (role) => {
         name: 'manager_id',
         type: 'list',
         message: 'Select the employees manager',
-        choices: select_Manager()
+        choices: [...manager]
       },
     ])
 
     .then((answer) => {
-      let roleID;
-
-      for (i=0; i < role.length; i++){
-        if (answer.role_id == role[i].name){
-          roleID = role[i].id;
-  
-        }
-      }
-
-      var managerID = select_Manager().indexOf(val.choice) + 1
+      
+     let managerID = answer.manager_id.split(".");
+     let roleID = answer.manager_id.split(".");
 
       connection.query(
         'INSERT INTO employee SET ?',
         {
           first_name: answer.first_name,
           last_name: answer.last_name,
-          role_id: roleID,
-          manager_id: managerID,
+          role_id: roleID[0],
+          manager_id: managerID[0],
         },
         (err) => {
           if(err) throw err;
