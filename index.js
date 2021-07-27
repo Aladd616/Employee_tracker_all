@@ -27,6 +27,7 @@ const run_Options = () => {
       message: 'What would you like to do?',
       choices: [
         'View All Employees',
+        'View all Departments',
         'View All Employees By Department',
         'View All Employees By Manager',
         'Add Employee',
@@ -66,7 +67,7 @@ const run_Options = () => {
             break;
 
         case 'Update Employee Role':
-            update_Role();
+            update_emp_Role();
             break;
       
 
@@ -133,7 +134,7 @@ const view_all_Dept = (call) => {
     'SELECT * FROM department';
     connection.query(query, (err, res) => {
       if (err) throw err;
-      let depo = res
+      let depo = res;
       console.table(res);
       switch (call) {
         case 'addrole':
@@ -225,8 +226,9 @@ const add_Dept = () =>{
   })
 }
 
-const add_Role = () =>{
-  inquirer.prompt({
+const add_Role = (depo) =>{
+  console.log(depo);
+  inquirer.prompt([{
     name: 'title',
     type: 'input',
     message: 'Insert the name of your new role'
@@ -241,12 +243,12 @@ const add_Role = () =>{
     type: 'list',
     message: 'What department is this new role in?',
     choices: [...depo]
-  },)
+  },])
 
   .then((answer) => {
 
     connection.query(
-      'INSERT INTO department SET ?',
+      'INSERT INTO role SET ?',
       {
         title: answer.title,
         salary: answer.salary,
@@ -259,4 +261,18 @@ const add_Role = () =>{
       }
     )
   })
+}
+
+const update_emp_Role = () => {
+  inquirer.prompt(
+    {
+    name: 'name',
+    type: 'list',
+    message: "What employee would you like to change the role of ?"
+  },
+  )
+
+  const query = connection.query(
+    'UPDATE role SET ? WHERE ?',
+  )
 }
