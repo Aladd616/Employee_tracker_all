@@ -28,15 +28,11 @@ const run_Options = () => {
       choices: [
         'View All Employees',
         'View all Departments',
-        'View All Employees By Department',
-        'View All Employees By Manager',
-        'Add Employee',
-        'Remove Employee',
-        'Update Employee Role',
-        'Update Employee Manager',
         'View all Roles',
+        'Add Department',
         'Add Role',
-        'Remove Role',
+        'Add Employee',
+        'Update Employee Role',
         'exit',
       ],
     })
@@ -47,7 +43,7 @@ const run_Options = () => {
           break;
 
         case 'View all Roles':
-            view_all_Roles();
+            view_all_Roles('viewall');
             break;
 
         case 'View all Departments':
@@ -55,7 +51,7 @@ const run_Options = () => {
             break;
 
         case 'Add Employee':
-            add_Employee();
+          view_all_Roles('addemp');
             break;
         
         case 'Add Role':
@@ -69,29 +65,7 @@ const run_Options = () => {
         case 'Update Employee Role':
             update_emp_Role();
             break;
-      
 
-        case 'View All Employees By Department':
-          view_all_Emp_Dept();
-          break;
-
-        case 'View All Employees By Manager':
-          view_all_EMP_Man();
-          break;
-
-        case 'Remove Employee':
-          remove_Employee();
-          break;
-
-        
-        case 'Update Employee Manager':
-            update_Manager();
-            break;
-
-
-        case 'Remove Role':
-          Remove_role();
-          break;
 
         case 'Exit':
           connection.end();
@@ -103,6 +77,18 @@ const run_Options = () => {
       }
     });
 };
+
+var manager =[];
+const select_Manager = () => {
+  connection.query("SELECT first_name, last_name FROM employee WHERE manager_id IS NULL", function(err, res) {
+    if (err) throw err
+    for (var i = 0; i < res.length; i++)
+ {
+   manager.push(res[i].first.name);
+ }  
+})
+return manager
+}
 
 const view_all = () =>{
     // const query =
@@ -150,16 +136,30 @@ const view_all_Dept = (call) => {
       });
 };
 
-const view_all_Roles = () => {
+const view_all_Roles = (call) => {
     const query = 
     'SELECT * FROM role';
     connection.query(query, (err, res) => {
-        res.forEach(({ title }) => console.table(title));
-        run_Options();
+      if (err) throw err; 
+      let roles = res;
+      let new_Roles = []
+      console.table(res);
+      switch (call) {
+        case 'addemp':
+          roles.forEach(({id, title}) => {
+            new_Roles.push(id+'.'+title)
+          })
+          add_Employee(new_Roles)
+          break;
+        
+        case 'viewall':
+          run_Options();
+          break;
+        }
       });
 };
 
-const add_Employee = () => {
+const add_Employee = (role) => {
   inquirer
     .prompt([
       {
@@ -174,25 +174,37 @@ const add_Employee = () => {
       },
       {
         name: 'role_id',
-        type: 'input',
-        message: 'Enter the new employees first name:',
+        type: 'list',
+        message: 'Select the employees role:',
+        choices: [...role]
       },
       {
         name: 'manager_id',
-        type: 'input',
-        message: 'Enter the new employees first name:',
+        type: 'list',
+        message: 'Select the employees manager',
+        choices: select_Manager()
       },
     ])
 
     .then((answer) => {
+      let roleID;
+
+      for (i=0; i < role.length; i++){
+        if (answer.role_id == role[i].name){
+          roleID = role[i].id;
+  
+        }
+      }
+
+      var managerID = select_Manager().indexOf(val.choice) + 1
 
       connection.query(
         'INSERT INTO employee SET ?',
         {
           first_name: answer.first_name,
           last_name: answer.last_name,
-          role_id: answer.role_id,
-          manager_id: answer.manager_id,
+          role_id: roleID,
+          manager_id: managerID,
         },
         (err) => {
           if(err) throw err;
@@ -200,8 +212,8 @@ const add_Employee = () => {
           run_Options();
         }
       )
-    })
-}
+    });
+};
 
 const add_Dept = () =>{
   inquirer.prompt({
@@ -227,7 +239,6 @@ const add_Dept = () =>{
 }
 
 const add_Role = (depo) =>{
-  console.log(depo);
   inquirer.prompt([{
     name: 'title',
     type: 'input',
@@ -281,6 +292,6 @@ const update_emp_Role = () => {
   )
 
   const query = connection.query(
-    'UPDATE role SET ? WHERE ?',
+    'UPDATE employee SET ? WHERE ?',
   )
 }
