@@ -239,7 +239,7 @@ const add_Role = (depo) =>{
     message: 'Insert the salary of this new role'
   },
   {
-    name: 'department id',
+    name: 'department_id',
     type: 'list',
     message: 'What department is this new role in?',
     choices: [...depo]
@@ -247,12 +247,20 @@ const add_Role = (depo) =>{
 
   .then((answer) => {
 
+    let depoID;
+
+    for (i=0; i < depo.length; i++){
+      if (answer.department_id == depo[i].name){
+        depoID = depo[i].id;
+
+      }
+    }
     connection.query(
       'INSERT INTO role SET ?',
       {
         title: answer.title,
         salary: answer.salary,
-        department_id: answer.department_id
+        department_id: depoID,
       },
       (err) => {
         if(err) throw err;
